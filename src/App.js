@@ -31,6 +31,15 @@ function fillInData(obj, dataSources) {
   }
 }
 
+function produceFilledInData(obj, dataSources) {
+  if (!obj) {
+    return [];
+  }
+  return produce(obj, draft => {
+    fillInData(draft, dataSources);
+  });
+}
+
 const { grist } = window;
 
 class App extends Component {
@@ -42,9 +51,7 @@ class App extends Component {
     const onGristUpdate = async () => {
       const dataSources = await grist.fetchSelectedTable();
       const state = await grist.getOption('state');
-      const data = state?.data ? produce(state.data, draft => {
-        fillInData(draft, dataSources);
-      }) : [];
+      const data = produceFilledInData(state?.data, dataSources);
       this.setState({ ...state, data, dataSources });
     };
     grist.onRecords(onGristUpdate);
@@ -69,9 +76,7 @@ class App extends Component {
         onUpdate={(data, layout, frames) => {
           this.setState({ data, layout, frames });
           const emptyDataSources = Object.fromEntries(dataSourceOptions.map(({value}) => [value, []]));
-          data = produce(data, draft => {
-            fillInData(draft, emptyDataSources);
-          });
+          data = produceFilledInData(data, emptyDataSources);
           grist.setOption('state', { data, layout, frames });
         }}
         useResizeHandler
