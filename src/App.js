@@ -6,7 +6,7 @@ import {produce, setAutoFreeze} from "immer"
 
 const config = { editable: true };
 
-function update(obj, dataSources) {
+function fillInData(obj, dataSources) {
   for (const key in obj) {
     const val = obj[key];
     if (key === "0" && typeof val !== "object") {
@@ -26,7 +26,7 @@ function update(obj, dataSources) {
         }
       }
     } else if (typeof val === "object") {
-      update(obj[key], dataSources);
+      fillInData(obj[key], dataSources);
     }
   }
 }
@@ -39,16 +39,16 @@ class App extends Component {
     setAutoFreeze(false);
     this.state = { data: [], layout: {}, frames: [], dataSources: {} };
 
-    const updateData = async () => {
+    const onGristUpdate = async () => {
       const dataSources = await grist.fetchSelectedTable();
       const state = await grist.getOption('state');
       const data = state?.data ? produce(state.data, draft => {
-        update(draft, dataSources);
+        fillInData(draft, dataSources);
       }) : [];
       this.setState({ ...state, data, dataSources });
     };
-    grist.onRecords(updateData);
-    grist.onOptions(updateData);
+    grist.onRecords(onGristUpdate);
+    grist.onOptions(onGristUpdate);
     grist.ready();
 
   }
@@ -68,9 +68,9 @@ class App extends Component {
         plotly={plotly}
         onUpdate={(data, layout, frames) => {
           this.setState({ data, layout, frames });
+          const emptyDataSources = Object.fromEntries(dataSourceOptions.map(({value}) => [value, []]));
           data = produce(data, draft => {
-            const emptyDataSources = Object.fromEntries(dataSourceOptions.map(({value}) => [value, []]));
-            update(draft, emptyDataSources);
+            fillInData(draft, emptyDataSources);
           });
           grist.setOption('state', { data, layout, frames });
         }}
