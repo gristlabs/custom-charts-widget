@@ -6,46 +6,49 @@ import {produce, setAutoFreeze} from "immer"
 
 const config = { editable: true };
 
+function update(obj, dataSources) {
+  for (const key in obj) {
+    const val = obj[key];
+    if (key === "0" && typeof val !== "object") {
+      return;
+    }
+    if (key.endsWith("src")) {
+      const attr = key.slice(0, -3);
+      const sources = typeof val === "string" ? [val] : val;
+      for (const i in sources) {
+        const source = sources[i];
+        if (source in dataSources) {
+          if (typeof val === "string") {
+            obj[attr] = dataSources[source];
+          } else {
+            obj[attr][i] = dataSources[source];
+          }
+        }
+      }
+    } else if (typeof val === "object") {
+      update(obj[key], dataSources);
+    }
+  }
+}
+
+const { grist } = window;
+
 class App extends Component {
   constructor(props) {
     super(props);
     setAutoFreeze(false);
     this.state = { data: [], layout: {}, frames: [], dataSources: {} };
-    const { grist } = window;
-    grist.onRecords(async () => {
-      const dataSources = await grist.fetchSelectedTable();
-      this.setState(({ data }) => {
-        const newData = produce(data, draft => {
-          function update(obj) {
-            for (const key in obj) {
-              const val = obj[key];
-              if (key === "0" && typeof val !== "object") {
-                return;
-              }
-              if (key.endsWith("src")) {
-                const attr = key.slice(0, -3);
-                const sources = typeof val === "string" ? [val] : val;
-                for (const i in sources) {
-                  const source = sources[i];
-                  if (source in dataSources) {
-                    if (typeof val === "string") {
-                      obj[attr] = dataSources[source];
-                    } else {
-                      obj[attr][i] = dataSources[source];
-                    }
-                  }
-                }
-              } else if (typeof val === "object") {
-                update(obj[key]);
-              }
-            }
-          }
 
-          update(draft);
-        });
-        return { data: newData, dataSources };
-      });
-    });
+    const updateData = async () => {
+      const dataSources = await grist.fetchSelectedTable();
+      const state = await grist.getOption('state');
+      const data = state?.data ? produce(state.data, draft => {
+        update(draft, dataSources);
+      }) : [];
+      this.setState({ ...state, data, dataSources });
+    };
+    grist.onRecords(updateData);
+    grist.onOptions(updateData);
     grist.ready();
 
   }
@@ -65,6 +68,11 @@ class App extends Component {
         plotly={plotly}
         onUpdate={(data, layout, frames) => {
           this.setState({ data, layout, frames });
+          data = produce(data, draft => {
+            const emptyDataSources = Object.fromEntries(dataSourceOptions.map(({value}) => [value, []]));
+            update(draft, emptyDataSources);
+          });
+          grist.setOption('state', { data, layout, frames });
         }}
         useResizeHandler
         debug
