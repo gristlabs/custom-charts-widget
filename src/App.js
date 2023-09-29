@@ -1,8 +1,9 @@
 import React, {Component} from 'react';
 import plotly from 'plotly.js/dist/plotly';
-import PlotlyEditor from 'react-chart-editor';
+import PlotlyEditor, {Button} from 'react-chart-editor';
 import 'react-chart-editor/lib/react-chart-editor.css';
 import {produce, setAutoFreeze} from "immer"
+import 'react-chart-editor/lib/react-chart-editor.min.css'
 
 const config = { editable: true };
 
@@ -86,12 +87,16 @@ class App extends Component {
     grist.onOptions(onGristUpdate);
     grist.ready({
       requiredAccess: 'full',
-      onEditOptions: () => this.setState((state) => ({
-        hideControls: false,
-        // Make a copy of data to tell plotly to refresh so that it fits with the expanded sidebar.
-        data: [...state.data],
-      })),
+      onEditOptions: () => this.setHideControls(false),
     });
+  }
+
+  setHideControls(hideControls) {
+    this.setState((state) => ({
+      hideControls,
+      // Make a copy of data to tell plotly to refresh so that it fits with the expanded sidebar.
+      data: [...state.data],
+    }));
   }
 
   render() {
@@ -114,6 +119,24 @@ class App extends Component {
         useResizeHandler
         advancedTraceTypeSelector
       />
+      {
+        !this.state.hideControls &&
+        <div className="editor_controls plotly-editor--theme-provider">
+          <Button
+            variant="primary"
+            onClick={() => this.setHideControls(true)}
+            style={{
+              position: 'fixed',
+              bottom: '5px',
+              left: '5px',
+              height: 'auto',
+              width: 'calc(var(--sidebar-width) - 10px)',
+            }}
+          >
+            Hide Controls
+          </Button>
+        </div>
+      }
     </div>);
   }
 }
