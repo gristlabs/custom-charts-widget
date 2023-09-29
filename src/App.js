@@ -86,7 +86,11 @@ class App extends Component {
     grist.onOptions(onGristUpdate);
     grist.ready({
       requiredAccess: 'full',
-      onEditOptions: () => this.setState((state) => ({ hideControls: false, data: [...state.data] })),
+      onEditOptions: () => this.setState((state) => ({
+        hideControls: false,
+        // Make a copy of data to tell plotly to refresh so that it fits with the expanded sidebar.
+        data: [...state.data],
+      })),
     });
   }
 
