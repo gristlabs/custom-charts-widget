@@ -4,26 +4,17 @@ import PlotlyEditor from 'react-chart-editor';
 import 'react-chart-editor/lib/react-chart-editor.css';
 import {produce, setAutoFreeze} from "immer"
 
-const dataSources = {
-  col1: [1, 2, 3], // eslint-disable-line no-magic-numbers
-  col2: [4, 3, 2], // eslint-disable-line no-magic-numbers
-  col3: [17, 13, 9], // eslint-disable-line no-magic-numbers
-};
-
-const dataSourceOptions = Object.keys(dataSources).map((name) => ({
-  value: name, label: name,
-}));
-
 const config = { editable: true };
 
 class App extends Component {
   constructor(props) {
     super(props);
     setAutoFreeze(false);
-    this.state = { data: [], layout: {}, frames: [], dataSources };
-    setInterval(() => {
+    this.state = { data: [], layout: {}, frames: [], dataSources: {} };
+    const { grist } = window;
+    grist.onRecords(async () => {
+      const dataSources = await grist.fetchSelectedTable();
       this.setState(({ data }) => {
-        const dataSourcesNew = Object.fromEntries(Object.entries(dataSources).map(([key, value]) => [key, value.map(() => Math.random())]));
         const newData = produce(data, draft => {
           function update(obj) {
             for (const key in obj) {
@@ -36,11 +27,11 @@ class App extends Component {
                 const sources = typeof val === "string" ? [val] : val;
                 for (const i in sources) {
                   const source = sources[i];
-                  if (source in dataSourcesNew) {
+                  if (source in dataSources) {
                     if (typeof val === "string") {
-                      obj[attr] = dataSourcesNew[source];
+                      obj[attr] = dataSources[source];
                     } else {
-                      obj[attr][i] = dataSourcesNew[source];
+                      obj[attr][i] = dataSources[source];
                     }
                   }
                 }
@@ -52,12 +43,17 @@ class App extends Component {
 
           update(draft);
         });
-        return { data: newData, dataSources: dataSourcesNew };
+        return { data: newData, dataSources };
       });
-    }, 1000);
+    });
+    grist.ready();
+
   }
 
   render() {
+    const dataSourceOptions = Object.keys(this.state.dataSources).map((name) => ({
+      value: name, label: name,
+    }));
     return (<div className="app">
       <PlotlyEditor
         data={this.state.data}
@@ -68,7 +64,6 @@ class App extends Component {
         dataSourceOptions={dataSourceOptions}
         plotly={plotly}
         onUpdate={(data, layout, frames) => {
-          console.log('onUpdate', { data, layout, frames });
           this.setState({ data, layout, frames });
         }}
         useResizeHandler
