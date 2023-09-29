@@ -56,8 +56,7 @@ class App extends Component {
     };
     grist.onRecords(onGristUpdate);
     grist.onOptions(onGristUpdate);
-    grist.ready();
-
+    grist.ready({ requiredAccess: 'full' });
   }
 
   render() {
