@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/custom-charts-widget/static/css/main.42883e4c.css",
+    "main.js": "/custom-charts-widget/static/js/main.864d1c17.js",
+    "index.html": "/custom-charts-widget/index.html",
+    "main.42883e4c.css.map": "/custom-charts-widget/static/css/main.42883e4c.css.map",
+    "main.864d1c17.js.map": "/custom-charts-widget/static/js/main.864d1c17.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.42883e4c.css",
+    "static/js/main.864d1c17.js"
+  ]
+}
