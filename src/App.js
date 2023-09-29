@@ -7,6 +7,16 @@ import 'react-chart-editor/lib/react-chart-editor.min.css'
 
 const config = { editable: true };
 
+const srcPrefix = "gristsrc:"
+
+function colRefToSrc(colRef) {
+  return srcPrefix + colRef;
+}
+
+function isGristSrc(src) {
+  return src.startsWith(srcPrefix);
+}
+
 function fillInData(obj, dataSources) {
   for (const key in obj) {
     const val = obj[key];
@@ -16,16 +26,19 @@ function fillInData(obj, dataSources) {
     if (key.endsWith("src")) {
       const attr = key.slice(0, -3);
       const sources = typeof val === "string" ? [val] : val;
-      for (const i in sources) {
-        const source = sources[i];
+      if (!sources.length || !isGristSrc(sources[0])) {
+        continue;
+      }
+      const newSources = [];
+      const values = [];
+      for (const source of sources) {
         if (source in dataSources) {
-          if (typeof val === "string") {
-            obj[attr] = dataSources[source];
-          } else {
-            obj[attr][i] = dataSources[source];
-          }
+          newSources.push(source);
+          values.push(dataSources[source]);
         }
       }
+      obj[key] = newSources.length === 1 ? newSources[0] : newSources;
+      obj[attr] = values.length === 1 ? values[0] : values;
     } else if (typeof val === "object") {
       fillInData(obj[key], dataSources);
     }
@@ -69,13 +82,13 @@ class App extends Component {
 
     const onGristUpdate = async () => {
       const columns = await getColumns();
-      const colIdToRef = Object.fromEntries(columns.map(col => [col.colId, col.id]));
+      const colIdToSrc = Object.fromEntries(columns.map(col => [col.colId, colRefToSrc(col.id)]));
       const tableData = await grist.fetchSelectedTable();
       const dataSources = Object.fromEntries(Object.entries(tableData).map(
-        ([colId, values]) => [colIdToRef[colId], values]
+        ([colId, values]) => [colIdToSrc[colId], values]
       ));
       const dataSourceOptions = columns.map(col => ({
-        value: col.id,
+        value: colRefToSrc(col.id),
         label: col.label
       })).filter(col => col.value in dataSources);
 
