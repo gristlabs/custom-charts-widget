@@ -57,7 +57,14 @@ class App extends Component {
   constructor(props) {
     super(props);
     setAutoFreeze(false);
-    this.state = { data: [], layout: {}, frames: [], dataSources: {}, dataSourceOptions: [] };
+    this.state = {
+      data: [],
+      layout: {},
+      frames: [],
+      dataSources: {},
+      dataSourceOptions: [],
+      hideControls: true,
+    };
 
     const onGristUpdate = async () => {
       const columns = await getColumns();
@@ -77,12 +84,16 @@ class App extends Component {
     };
     grist.onRecords(onGristUpdate);
     grist.onOptions(onGristUpdate);
-    grist.ready({ requiredAccess: 'full' });
+    grist.ready({
+      requiredAccess: 'full',
+      onEditOptions: () => this.setState((state) => ({ hideControls: false, data: [...state.data] })),
+    });
   }
 
   render() {
     return (<div className="app">
       <PlotlyEditor
+        hideControls={this.state.hideControls}
         data={this.state.data}
         layout={this.state.layout}
         config={config}
@@ -97,7 +108,6 @@ class App extends Component {
           grist.setOption('state', { data, layout, frames });
         }}
         useResizeHandler
-        debug
         advancedTraceTypeSelector
       />
     </div>);
