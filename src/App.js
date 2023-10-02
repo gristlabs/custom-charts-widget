@@ -6,7 +6,7 @@ import {produce, setAutoFreeze} from "immer"
 import 'react-chart-editor/lib/react-chart-editor.min.css'
 import {CogIcon} from 'plotly-icons';
 
-const config = { editable: true };
+const config = { displayModeBar: false };
 
 const srcPrefix = "gristsrc:"
 
@@ -74,7 +74,15 @@ class App extends Component {
     setAutoFreeze(false);
     this.state = {
       data: [],
-      layout: {},
+      layout: {
+        margin: {
+          l: 50,
+          r: 50,
+          b: 40,  // Space below chart which includes x-axis labels
+          t: 30,  // Space above the chart (doesn't include any text)
+          pad: 4
+        },
+      },
       frames: [],
       dataSources: {},
       dataSourceOptions: [],
