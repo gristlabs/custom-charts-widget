@@ -103,7 +103,7 @@ class App extends Component {
     grist.onOptions(onGristUpdate);
     grist.ready({
       requiredAccess: 'full',
-      onEditOptions: () => this.setHideControls(false),
+      onEditOptions: () => this.setHideControls(!this.state.hideControls),
     });
   }
 
