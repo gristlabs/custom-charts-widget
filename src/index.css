@@ -9,3 +9,18 @@ body {
   max-height: 100vh;
   width: 100%;
 }
+
+.show-controls-icon-button {
+  opacity: 0.4;
+  cursor: pointer;
+}
+
+.show-controls-icon-button:hover {
+  opacity: 1;
+}
+
+.controls-button {
+  position: fixed;
+  bottom: 5px;
+  left: 5px;
+}

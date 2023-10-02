@@ -4,6 +4,7 @@ import PlotlyEditor, {Button} from 'react-chart-editor';
 import 'react-chart-editor/lib/react-chart-editor.css';
 import {produce, setAutoFreeze} from "immer"
 import 'react-chart-editor/lib/react-chart-editor.min.css'
+import {CogIcon} from 'plotly-icons';
 
 const config = { editable: true };
 
@@ -140,23 +141,27 @@ class App extends Component {
         useResizeHandler
         advancedTraceTypeSelector
       />
-      {
-        !this.state.hideControls && this.state.data.length > 0 &&
-        <div className="editor_controls plotly-editor--theme-provider">
-          <Button
-            variant="primary"
-            onClick={() => this.setHideControls(true)}
-            style={{
-              position: 'fixed',
-              bottom: '5px',
-              left: '5px',
-              height: 'auto',
-              width: 'calc(var(--sidebar-width) - 10px)',
-            }}
-          >
-            Hide Controls
-          </Button>
-        </div>
+      {this.state.data.length > 0 && (
+        !this.state.hideControls ?
+          <div className="editor_controls plotly-editor--theme-provider">
+            <Button
+              className="controls-button"
+              variant="primary"
+              onClick={() => this.setHideControls(true)}
+              style={{
+                height: 'auto',
+                width: 'calc(var(--sidebar-width) - 10px)',
+              }}
+            >
+              Hide Controls
+            </Button>
+          </div>
+          :
+          <CogIcon
+            className="controls-button show-controls-icon-button"
+            onClick={() => this.setHideControls(false)}
+          />
+      )
       }
     </div>);
   }
