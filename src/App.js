@@ -95,6 +95,9 @@ class App extends Component {
       const state = await grist.getOption('state');
       const data = produceFilledInData(state?.data, dataSources);
       this.setState({ ...state, data, dataSources, dataSourceOptions });
+      if (!data.length) {
+        this.setState({ hideControls: false });
+      }
     };
     grist.onRecords(onGristUpdate);
     grist.onOptions(onGristUpdate);
@@ -105,11 +108,16 @@ class App extends Component {
   }
 
   setHideControls(hideControls) {
-    this.setState((state) => ({
-      hideControls,
-      // Make a copy of data to tell plotly to refresh so that it fits with the expanded sidebar.
-      data: [...state.data],
-    }));
+    this.setState((state) => {
+      if (!state.data.length) {
+        return;
+      }
+      return {
+        hideControls,
+        // Make a copy of data to tell plotly to refresh so that it fits with the expanded sidebar.
+        data: [...state.data],
+      };
+    });
   }
 
   render() {
@@ -133,7 +141,7 @@ class App extends Component {
         advancedTraceTypeSelector
       />
       {
-        !this.state.hideControls &&
+        !this.state.hideControls && this.state.data.length > 0 &&
         <div className="editor_controls plotly-editor--theme-provider">
           <Button
             variant="primary"
