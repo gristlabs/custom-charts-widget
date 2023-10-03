@@ -55,6 +55,11 @@ function produceFilledInData(obj, dataSources) {
   });
 }
 
+// Whether a column is internal and should be hidden.
+export function isHiddenCol(colId) {
+  return colId.startsWith('gristHelper_') || colId === 'manualSort';
+}
+
 const { grist } = window;
 
 async function getColumns() {
@@ -65,7 +70,12 @@ async function getColumns() {
   const columnRecords = columns.id.map((_id, i) =>
     Object.fromEntries(Object.keys(columns).map(key => [key, columns[key][i]]))
   );
-  return columnRecords.filter(col => col.parentId === tableRef);
+  return columnRecords.filter(
+    col => col.parentId === tableRef
+      && !isHiddenCol(col.colId)
+      // TODO support these types (except Attachments)
+      && !["ChoiceList", "Attachments", "Ref", "RefList"].includes(col.type.split(":")[0])
+  );
 }
 
 class App extends Component {
@@ -92,7 +102,8 @@ class App extends Component {
     const onGristUpdate = async () => {
       const columns = await getColumns();
       const colIdToSrc = Object.fromEntries(columns.map(col => [col.colId, colRefToSrc(col.id)]));
-      const tableData = await grist.fetchSelectedTable();
+      const tableId = await grist.selectedTable.getTableId();
+      const tableData = await grist.docApi.fetchTable(tableId);
       const dataSources = Object.fromEntries(Object.entries(tableData).map(
         ([colId, values]) => [colIdToSrc[colId], values]
       ));
