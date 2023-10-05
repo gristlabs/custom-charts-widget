@@ -74,7 +74,7 @@ async function getColumns() {
     col => col.parentId === tableRef
       && !isHiddenCol(col.colId)
       // TODO support other types (except Attachments)
-      && ["Numeric", "Text"].includes(col.type)
+      && ["Numeric", "Text", "Int", "Bool", "Choice"].includes(col.type)
   );
 }
 
