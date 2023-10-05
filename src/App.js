@@ -73,8 +73,8 @@ async function getColumns() {
   return columnRecords.filter(
     col => col.parentId === tableRef
       && !isHiddenCol(col.colId)
-      // TODO support these types (except Attachments)
-      && !["ChoiceList", "Attachments", "Ref", "RefList"].includes(col.type.split(":")[0])
+      // TODO support other types (except Attachments)
+      && ["Numeric", "Text"].includes(col.type)
   );
 }
 
