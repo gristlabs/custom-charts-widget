@@ -11,6 +11,7 @@ body {
 }
 
 .show-controls-icon-button {
+  fill: grey;
   opacity: 0.4;
   cursor: pointer;
 }
