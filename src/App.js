@@ -15,7 +15,7 @@ function colRefToSrc(colRef) {
 }
 
 function isGristSrc(src) {
-  return src.startsWith(srcPrefix);
+  return typeof src === "string" && src.startsWith(srcPrefix);
 }
 
 function fillInData(obj, dataSources) {
@@ -24,10 +24,10 @@ function fillInData(obj, dataSources) {
     if (key === "0" && typeof val !== "object") {
       return;
     }
-    if (key.endsWith("src")) {
+    if (key.endsWith("src") && val) {
       const attr = key.slice(0, -3);
       const sources = typeof val === "string" ? [val] : val;
-      if (!sources.length || !isGristSrc(sources[0])) {
+      if (!Array.isArray(sources) || !sources.length || !isGristSrc(sources[0])) {
         continue;
       }
       const newSources = [];
