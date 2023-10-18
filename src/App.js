@@ -105,7 +105,7 @@ class App extends Component {
       const tableId = await grist.selectedTable.getTableId();
       const tableData = await grist.docApi.fetchTable(tableId);
       const dataSources = Object.fromEntries(Object.entries(tableData).map(
-        ([colId, values]) => [colIdToSrc[colId], values.map(v => v === '' ? '[Blank]' : v)]
+        ([colId, values]) => [colIdToSrc[colId], values.map(v => v === '' || v == null ? '[Blank]' : v)]
       ));
       const dataSourceOptions = columns.map(col => ({
         value: colRefToSrc(col.id),
