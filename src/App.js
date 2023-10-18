@@ -152,6 +152,13 @@ class App extends Component {
         dataSourceOptions={this.state.dataSourceOptions}
         plotly={plotly}
         onUpdate={(data, layout, frames) => {
+          // console.log("onUpdate", { data, layout, frames });
+          for (const [key, value] of Object.entries(layout)) {
+            if (/^[xyz]axis\d*$/.test(key) && !("automargin" in value)) {
+              value.automargin = true;
+              layout = { ...layout };
+            }
+          }
           this.setState({ data, layout, frames });
           const emptyDataSources = Object.fromEntries(this.state.dataSourceOptions.map(({ value }) => [value, []]));
           data = produceFilledInData(data, emptyDataSources);
