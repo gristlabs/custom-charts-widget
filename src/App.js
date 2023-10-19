@@ -73,8 +73,10 @@ async function getColumns() {
   return columnRecords.filter(
     col => col.parentId === tableRef
       && !isHiddenCol(col.colId)
-      // TODO support other types (except Attachments)
-      && ["Numeric", "Text", "Int", "Bool", "Choice"].includes(col.type)
+      && col.type !== "Attachments"
+      // TODO support lists
+      && col.type !== "ChoiceList"
+      && !col.type.startsWith("RefList")
   );
 }
 
@@ -99,11 +101,9 @@ class App extends Component {
       hideControls: true,
     };
 
-    const onGristUpdate = async () => {
+    const onGristUpdate = async (tableData) => {
       const columns = await getColumns();
       const colIdToSrc = Object.fromEntries(columns.map(col => [col.colId, colRefToSrc(col.id)]));
-      const tableId = await grist.selectedTable.getTableId();
-      const tableData = await grist.docApi.fetchTable(tableId);
       const dataSources = Object.fromEntries(Object.entries(tableData).map(
         ([colId, values]) => [colIdToSrc[colId], values.map(v => v === '' || v == null ? '[Blank]' : v)]
       ));
@@ -119,8 +119,12 @@ class App extends Component {
         this.setState({ hideControls: false });
       }
     };
-    grist.onRecords(onGristUpdate);
-    grist.onOptions(onGristUpdate);
+    const dataOptions = {format: 'columns', includeColumns: 'normal'};
+    grist.onRecords(onGristUpdate, dataOptions);
+    grist.onOptions(async () => {
+      const tableData = await grist.fetchSelectedTable(dataOptions);
+      await onGristUpdate(tableData);
+    });
     grist.ready({
       requiredAccess: 'full',
       onEditOptions: () => this.setHideControls(!this.state.hideControls),
