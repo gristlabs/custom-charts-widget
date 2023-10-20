@@ -18,7 +18,7 @@ function isGristSrc(src) {
   return typeof src === "string" && src.startsWith(srcPrefix);
 }
 
-function fillInData(obj, dataSources) {
+function fillInData(obj, dataSources, collectedData) {
   for (const key in obj) {
     const val = obj[key];
     if (key === "0" && typeof val !== "object") {
@@ -31,17 +31,33 @@ function fillInData(obj, dataSources) {
         continue;
       }
       const newSources = [];
-      const values = [];
+      let values = [];
       for (const source of sources) {
         if (source in dataSources) {
           newSources.push(source);
-          values.push(dataSources[source]);
+          values.push([...dataSources[source]]);
         }
       }
       obj[key] = newSources.length === 1 ? newSources[0] : newSources;
-      obj[attr] = values.length === 1 ? values[0] : values;
+      if (values.length === 1) {
+        function setter(v) {
+          obj[attr] = v;
+        }
+
+        values = values[0];
+        collectedData.push({ values, obj, attr, setter });
+      } else {
+        values.forEach((column, i) => {
+          function setter(v) {
+            obj[attr][i] = v;
+          }
+
+          collectedData.push({ values: column, obj, attr, setter });
+        });
+      }
+      obj[attr] = values;
     } else if (typeof val === "object") {
-      fillInData(obj[key], dataSources);
+      fillInData(obj[key], dataSources, collectedData);
     }
   }
 }
@@ -51,7 +67,13 @@ function produceFilledInData(obj, dataSources) {
     return [];
   }
   return produce(obj, draft => {
-    fillInData(draft, dataSources);
+    for (const trace of draft) {
+      const collectedData = [];
+      fillInData(trace, dataSources, collectedData);
+      for (const { values, setter } of collectedData) {
+        setter(values);
+      }
+    }
   });
 }
 
@@ -152,7 +174,7 @@ class App extends Component {
         dataSourceOptions={this.state.dataSourceOptions}
         plotly={plotly}
         onUpdate={(data, layout, frames) => {
-          // console.log("onUpdate", { data, layout, frames });
+          console.log("onUpdate", { data, layout, frames });
           for (const [key, value] of Object.entries(layout)) {
             if (/^[xyz]axis\d*$/.test(key) && !("automargin" in value)) {
               value.automargin = true;
