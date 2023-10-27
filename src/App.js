@@ -18,7 +18,7 @@ function isGristSrc(src) {
   return typeof src === "string" && src.startsWith(srcPrefix);
 }
 
-function fillInData(obj, dataSources) {
+function fillInData(obj, dataSources, collectedData) {
   for (const key in obj) {
     const val = obj[key];
     if (key === "0" && typeof val !== "object") {
@@ -31,17 +31,33 @@ function fillInData(obj, dataSources) {
         continue;
       }
       const newSources = [];
-      const values = [];
+      let values = [];
       for (const source of sources) {
         if (source in dataSources) {
           newSources.push(source);
-          values.push(dataSources[source]);
+          values.push([...dataSources[source]]);
         }
       }
       obj[key] = newSources.length === 1 ? newSources[0] : newSources;
-      obj[attr] = values.length === 1 ? values[0] : values;
+      if (values.length === 1) {
+        function setter(v) {
+          obj[attr] = v;
+        }
+
+        values = values[0];
+        collectedData.push({ values, obj, attr, setter });
+      } else {
+        values.forEach((column, i) => {
+          function setter(v) {
+            obj[attr][i] = v;
+          }
+
+          collectedData.push({ values: column, obj, attr, setter });
+        });
+      }
+      obj[attr] = values;
     } else if (typeof val === "object") {
-      fillInData(obj[key], dataSources);
+      fillInData(obj[key], dataSources, collectedData);
     }
   }
 }
@@ -51,8 +67,40 @@ function produceFilledInData(obj, dataSources) {
     return [];
   }
   return produce(obj, draft => {
-    fillInData(draft, dataSources);
+    for (const trace of draft) {
+      const collectedData = [];
+      fillInData(trace, dataSources, collectedData);
+      flattenLists(collectedData);
+      for (const { values, setter } of collectedData) {
+        setter(values);
+      }
+    }
   });
+}
+
+function flattenLists(collectedData) {
+  for (const col of collectedData) {
+    if (!col.values.some(Array.isArray)) {
+      continue;
+    }
+    for (const col of collectedData) {
+      col.newValues = [];
+    }
+    for (let valueIndex = 0; valueIndex < col.values.length; valueIndex++) {
+      const value = col.values[valueIndex];
+      const valueArr = Array.isArray(value) ? value : [value];
+      col.newValues.push(...valueArr);
+      for (const otherCol of collectedData) {
+        if (otherCol === col) {
+          continue;
+        }
+        otherCol.newValues.push(...new Array(valueArr.length).fill(otherCol.values[valueIndex]));
+      }
+    }
+    for (const col of collectedData) {
+      col.values = col.newValues;
+    }
+  }
 }
 
 // Whether a column is internal and should be hidden.
@@ -73,8 +121,7 @@ async function getColumns() {
   return columnRecords.filter(
     col => col.parentId === tableRef
       && !isHiddenCol(col.colId)
-      // TODO support other types (except Attachments)
-      && ["Numeric", "Text", "Int", "Bool", "Choice"].includes(col.type)
+      && col.type !== "Attachments"
   );
 }
 
@@ -99,11 +146,9 @@ class App extends Component {
       hideControls: true,
     };
 
-    const onGristUpdate = async () => {
+    const onGristUpdate = async (tableData) => {
       const columns = await getColumns();
       const colIdToSrc = Object.fromEntries(columns.map(col => [col.colId, colRefToSrc(col.id)]));
-      const tableId = await grist.selectedTable.getTableId();
-      const tableData = await grist.docApi.fetchTable(tableId);
       const dataSources = Object.fromEntries(Object.entries(tableData).map(
         ([colId, values]) => [colIdToSrc[colId], values.map(v => v === '' || v == null ? '[Blank]' : v)]
       ));
@@ -119,8 +164,12 @@ class App extends Component {
         this.setState({ hideControls: false });
       }
     };
-    grist.onRecords(onGristUpdate);
-    grist.onOptions(onGristUpdate);
+    const dataOptions = {format: 'columns', includeColumns: 'normal'};
+    grist.onRecords(onGristUpdate, dataOptions);
+    grist.onOptions(async () => {
+      const tableData = await grist.fetchSelectedTable(dataOptions);
+      await onGristUpdate(tableData);
+    });
     grist.ready({
       requiredAccess: 'full',
       onEditOptions: () => this.setHideControls(!this.state.hideControls),
@@ -152,7 +201,7 @@ class App extends Component {
         dataSourceOptions={this.state.dataSourceOptions}
         plotly={plotly}
         onUpdate={(data, layout, frames) => {
-          // console.log("onUpdate", { data, layout, frames });
+          console.log("onUpdate", { data, layout, frames });
           for (const [key, value] of Object.entries(layout)) {
             if (/^[xyz]axis\d*$/.test(key) && !("automargin" in value)) {
               value.automargin = true;
