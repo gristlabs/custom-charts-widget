@@ -4,7 +4,7 @@ This widget is still very new and under active development, so some things might
 
 In the custom widget configuration, choose “Custom URL” and paste the following URL:
 
-https://gristlabs.github.io/custom-charts-widget/
+https://gristlabs.github.io/grist-widget/chart/
 
 You’ll need to set the access level to “Full document access”. Don’t worry, the widget only reads data from the selected table, doesn’t send it to any servers, and doesn’t write or otherwise make changes back to your document.
 
