@@ -70,11 +70,37 @@ function produceFilledInData(obj, dataSources) {
     for (const trace of draft) {
       const collectedData = [];
       fillInData(trace, dataSources, collectedData);
+      flattenLists(collectedData);
       for (const { values, setter } of collectedData) {
         setter(values);
       }
     }
   });
+}
+
+function flattenLists(collectedData) {
+  for (const col of collectedData) {
+    if (!col.values.some(Array.isArray)) {
+      continue;
+    }
+    for (const col of collectedData) {
+      col.newValues = [];
+    }
+    for (let valueIndex = 0; valueIndex < col.values.length; valueIndex++) {
+      const value = col.values[valueIndex];
+      const valueArr = Array.isArray(value) ? value : [value];
+      col.newValues.push(...valueArr);
+      for (const otherCol of collectedData) {
+        if (otherCol === col) {
+          continue;
+        }
+        otherCol.newValues.push(...new Array(valueArr.length).fill(otherCol.values[valueIndex]));
+      }
+    }
+    for (const col of collectedData) {
+      col.values = col.newValues;
+    }
+  }
 }
 
 // Whether a column is internal and should be hidden.
@@ -96,9 +122,6 @@ async function getColumns() {
     col => col.parentId === tableRef
       && !isHiddenCol(col.colId)
       && col.type !== "Attachments"
-      // TODO support lists
-      && col.type !== "ChoiceList"
-      && !col.type.startsWith("RefList")
   );
 }
 
