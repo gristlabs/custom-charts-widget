@@ -165,7 +165,11 @@ class App extends Component {
       }
     };
     const dataOptions = {format: 'columns', includeColumns: 'normal'};
-    grist.onRecords(onGristUpdate, dataOptions);
+    try {
+      grist.onRecords(onGristUpdate, dataOptions);
+    } catch (e) {
+      console.warn(e);
+    }
     grist.onOptions(async () => {
       const tableData = await grist.fetchSelectedTable(dataOptions);
       await onGristUpdate(tableData);
