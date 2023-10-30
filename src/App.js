@@ -187,10 +187,16 @@ class App extends Component {
       }
       return {
         hideControls,
-        // Make a copy of data to tell plotly to refresh so that it fits with the expanded sidebar.
+        // Make a copy of data to tell plotly to refresh so that it resizes
         data: [...state.data],
       };
     });
+    // Refresh again shortly after, the first time sometimes isn't quite right.
+    setTimeout(() => {
+      this.setState(state => ({
+        data: [...state.data],
+      }))
+    }, 20);
   }
 
   render() {
