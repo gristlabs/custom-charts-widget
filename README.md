@@ -62,6 +62,6 @@ where `grist-plugin-api.js` is loaded.
 }
 ```
 
-4. When the data is updated via `onRecords`, we can update `dataSources`, but this *doesn't* automatically update `data`. So we recursively walk through `data` looking for keys ending in `src` with values starting with `gristsrc:`.
+4. When the data is updated via `onRecords`, we can update `dataSources`, but this *doesn't* automatically update `data`. So we recursively walk through `data` looking for keys ending in `src` with values starting with `gristsrc:`. See the `fillInData` function.
 5. The corresponding arrays of column values are gathered into an array `columns` on which we can perform data transformations such as flattening lists. We can't do this directly with the data received in `onRecords` because the transformations depend on the user's selections. The transformed arrays are then put back into the place we found them in `data`.
 6. The same recursive function is used to produce a copy of `data` where the column values are replaced by empty arrays. This is saved in the widget options along with `layout`.
