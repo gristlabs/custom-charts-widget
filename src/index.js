@@ -5,6 +5,8 @@ import 'react-chart-editor/lib/react-chart-editor.css';
 import {produce, setAutoFreeze} from "immer"
 import 'react-chart-editor/lib/react-chart-editor.min.css'
 import {CogIcon} from 'plotly-icons';
+import ReactDOM from 'react-dom/client';
+import './index.css';
 
 const config = { displayModeBar: false };
 
@@ -252,4 +254,7 @@ class App extends Component {
   }
 }
 
-export default App;
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <App/>
+);
