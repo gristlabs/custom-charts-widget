@@ -8,8 +8,6 @@ import {CogIcon} from 'plotly-icons';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 
-const config = { displayModeBar: false };
-
 const srcPrefix = "gristsrc:"
 
 function colRefToSrc(colRef) {
@@ -20,7 +18,7 @@ function isGristSrc(src) {
   return typeof src === "string" && src.startsWith(srcPrefix);
 }
 
-function fillInData(obj, dataSources, collectedData) {
+function fillInData(obj, dataSources, columns) {
   for (const key in obj) {
     const val = obj[key];
     if (key === "0" && typeof val !== "object") {
@@ -47,19 +45,19 @@ function fillInData(obj, dataSources, collectedData) {
         }
 
         values = values[0];
-        collectedData.push({ values, obj, attr, setter });
+        columns.push({ values, obj, attr, setter });
       } else {
         values.forEach((column, i) => {
           function setter(v) {
             obj[attr][i] = v;
           }
 
-          collectedData.push({ values: column, obj, attr, setter });
+          columns.push({ values: column, obj, attr, setter });
         });
       }
       obj[attr] = values;
     } else if (typeof val === "object") {
-      fillInData(obj[key], dataSources, collectedData);
+      fillInData(obj[key], dataSources, columns);
     }
   }
 }
@@ -70,36 +68,36 @@ function produceFilledInData(obj, dataSources) {
   }
   return produce(obj, draft => {
     for (const trace of draft) {
-      const collectedData = [];
-      fillInData(trace, dataSources, collectedData);
-      flattenLists(collectedData);
-      for (const { values, setter } of collectedData) {
+      const columns = [];
+      fillInData(trace, dataSources, columns);
+      flattenLists(columns);
+      for (const { values, setter } of columns) {
         setter(values);
       }
     }
   });
 }
 
-function flattenLists(collectedData) {
-  for (const col of collectedData) {
+function flattenLists(columns) {
+  for (const col of columns) {
     if (!col.values.some(Array.isArray)) {
       continue;
     }
-    for (const col of collectedData) {
+    for (const col of columns) {
       col.newValues = [];
     }
     for (let valueIndex = 0; valueIndex < col.values.length; valueIndex++) {
       const value = col.values[valueIndex];
       const valueArr = Array.isArray(value) ? value : [value];
       col.newValues.push(...valueArr);
-      for (const otherCol of collectedData) {
+      for (const otherCol of columns) {
         if (otherCol === col) {
           continue;
         }
         otherCol.newValues.push(...new Array(valueArr.length).fill(otherCol.values[valueIndex]));
       }
     }
-    for (const col of collectedData) {
+    for (const col of columns) {
       col.values = col.newValues;
     }
   }
@@ -207,13 +205,13 @@ class App extends Component {
         hideControls={this.state.hideControls}
         data={this.state.data}
         layout={this.state.layout}
-        config={config}
+        config={{ displayModeBar: false }}
         frames={this.state.frames}
         dataSources={this.state.dataSources}
         dataSourceOptions={this.state.dataSourceOptions}
         plotly={plotly}
         onUpdate={(data, layout, frames) => {
-          console.log("onUpdate", { data, layout, frames });
+          // console.log("onUpdate", { data, layout, frames });
           for (const [key, value] of Object.entries(layout)) {
             if (/^[xyz]axis\d*$/.test(key) && !("automargin" in value)) {
               value.automargin = true;
