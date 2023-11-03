@@ -8,11 +8,11 @@ You’ll need to set the access level to “Full document access”. Don’t wor
 
 This is what you should see:
 
-![Trace your data](./images/Screenshot%20from%202023-10-06%2013-51-47.png)
+![Trace your data](./images/blank_traces_panel.png)
 
 Click the big blue “+ Trace” button to get started. This will add a panel like the following:
 
-![trace 0, Type: Scatter](./images/Screenshot%20from%202023-10-06%2013-54-38.png)
+![trace 0, Type: Scatter](./images/blank_trace.png)
 
 Click “Scatter” to choose a different chart type such as Bar or Line. Then click the “Choose data” dropdowns to select the columns you want to plot.
 
