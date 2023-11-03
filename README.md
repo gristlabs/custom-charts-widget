@@ -9,7 +9,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 - Run `npm install` to get started.
 - Run `npm start` to start the development server, and open [http://localhost:3000](http://localhost:3000) to view it in
   the browser.
-- Run `npm run deploy` to deploy to GitHub Pages.
+- Run `npm run deploy` to deploy to GitHub Pages. This will build a production bundle and push it to the `gh-pages` branch, and it will be served at https://gristlabs.github.io/custom-charts-widget/.
 
 ## Code overview
 
