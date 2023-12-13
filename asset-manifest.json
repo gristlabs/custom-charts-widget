@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/grist-widget/chart/static/css/main.9474a52b.css",
-    "main.js": "/grist-widget/chart/static/js/main.cc48c40f.js",
-    "index.html": "/grist-widget/chart/index.html",
-    "main.9474a52b.css.map": "/grist-widget/chart/static/css/main.9474a52b.css.map",
-    "main.cc48c40f.js.map": "/grist-widget/chart/static/js/main.cc48c40f.js.map"
+    "main.css": "./static/css/main.9474a52b.css",
+    "main.js": "./static/js/main.6fd5eb20.js",
+    "index.html": "./index.html",
+    "main.9474a52b.css.map": "./static/css/main.9474a52b.css.map",
+    "main.6fd5eb20.js.map": "./static/js/main.6fd5eb20.js.map"
   },
   "entrypoints": [
     "static/css/main.9474a52b.css",
-    "static/js/main.cc48c40f.js"
+    "static/js/main.6fd5eb20.js"
   ]
 }
