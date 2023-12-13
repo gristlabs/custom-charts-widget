@@ -30,20 +30,26 @@ function isGristSrc(src) {
 }
 
 /**
- * Recursively walk through `obj` looking for `gristsrc:` strings.
+ * Recursively walk through `dataTarget` looking for `gristsrc:` strings.
  * For each one, look up the string in `dataSources` to get the array of column values.
- * Push an object to `columns` containing the array of `values`, a function `setter`
- * to set new `values` back into `obj`, and other possible useful context.
+ * Push an object to `columns` containing the array of `values`, a function `setterInDataTarget`
+ * to set new `values` back into `dataTarget`, and other possible useful context.
+ *
+ * `dataTarget` is a proxy produced by immer, so you can write mutation-style code.
+ * The underlying value may be an array or an object.
+ * Initially this function is called with `dataTarget` being a trace object,
+ * i.e. an element of the plotly `data` array.
+ * Then it may be recursively called with values within `dataTarget`.
  */
-function fillInData(obj, dataSources, columns) {
-  for (const key in obj) {
-    const val = obj[key];
-    if (key === "0" && typeof val !== "object") {
+function fillInData(dataTarget, dataSources, columns) {
+  for (const srcKey in dataTarget) {
+    const val = dataTarget[srcKey];
+    if (srcKey === "0" && typeof val !== "object") {
       // This is an optimisation to avoid long loops through arrays of column values.
-      // We can't check if `obj` is an array because it's a proxy produced by immer.
+      // We can't check if `dataTarget` is an array because it's a proxy produced by immer.
       return;
     }
-    if (key.endsWith("src") && val) {
+    if (srcKey.endsWith("src") && val) {
       // We might have a single string or an array of strings.
       const sources = typeof val === "string" ? [val] : val;
       if (!Array.isArray(sources) || !sources.length || !isGristSrc(sources[0])) {
@@ -60,27 +66,26 @@ function fillInData(obj, dataSources, columns) {
           values.push([...dataSources[source]]);
         }
       }
-      obj[key] = newSources.length === 1 ? newSources[0] : newSources;
-      const attr = key.slice(0, -3);
+      dataTarget[srcKey] = newSources.length === 1 ? newSources[0] : newSources;
+      const valuesKey = srcKey.slice(0, -3);
       if (values.length === 1) {
-        function setter(v) {
-          obj[attr] = v;
+        function setterInDataTarget(v) {
+          dataTarget[valuesKey] = v;
         }
 
         values = values[0];
-        columns.push({ values, obj, attr, setter });
+        columns.push({ values, setterInDataTarget });
       } else {
         values.forEach((column, i) => {
-          function setter(v) {
-            obj[attr][i] = v;
+          function setterInDataTarget(v) {
+            dataTarget[valuesKey][i] = v;
           }
 
-          columns.push({ values: column, obj, attr, setter });
+          columns.push({ values: column, setterInDataTarget });
         });
       }
-      obj[attr] = values;  // this is actually redundant and could maybe be removed
     } else if (typeof val === "object") {
-      fillInData(obj[key], dataSources, columns);
+      fillInData(dataTarget[srcKey], dataSources, columns);
     }
   }
 }
@@ -105,10 +110,14 @@ function produceFilledInData(data, dataSources) {
       fillInData(trace, dataSources, columns);
 
       // This is where other kinds of data transformations could be added.
+      // These transformations should leave an appropriate `values` array in each column.
+      // They can either modify the `values` array in place, or replace it with a new array.
       flattenLists(columns);
 
-      for (const { values, setter } of columns) {
-        setter(values);
+      for (const { values, setterInDataTarget } of columns) {
+        setterInDataTarget(values);
+        // i.e. set either `dataTarget[valuesKey]` or `dataTarget[valuesKey][i]` to `values`
+        // where `dataTarget` is either `trace` itself or a nested object within it.
       }
     }
   });
