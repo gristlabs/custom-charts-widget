@@ -67,6 +67,8 @@ function fillInData(dataTarget, dataSources, columns) {
         }
       }
       dataTarget[srcKey] = newSources.length === 1 ? newSources[0] : newSources;
+
+      // e.g. `srcKey` is "xsrc", `valuesKey` is "x"
       const valuesKey = srcKey.slice(0, -3);
       if (values.length === 1) {
         function setterInDataTarget(v) {
@@ -110,6 +112,7 @@ function produceFilledInData(data, dataSources) {
       fillInData(trace, dataSources, columns);
 
       // This is where other kinds of data transformations could be added.
+      // (see https://github.com/gristlabs/custom-charts-widget/issues/2)
       // These transformations should leave an appropriate `values` array in each column.
       // They can either modify the `values` array in place, or replace it with a new array.
       flattenLists(columns);
