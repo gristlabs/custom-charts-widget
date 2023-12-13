@@ -1,0 +1,50 @@
+{
+  "name": "@gristlabs/widget-chart",
+  "description": "Widget for more customizable charts with plotly",
+  "version": "0.1.0",
+  "private": false,
+  "homepage": "https://gristlabs.github.io/custom-charts-widget/",
+  "grist": [
+    {
+      "name": "Advanced Charts",
+      "url": "https://gristlabs.github.io/grist-widget/chart",
+      "widgetId": "@gristlabs/widget-chart",
+      "published": true,
+      "accessLevel": "full"
+    }
+  ],
+  "dependencies": {
+    "gh-pages": "^6.0.0",
+    "immer": "^10.0.2",
+    "plotly.js": "^2.26.1",
+    "react": "^18.2.0",
+    "react-chart-editor": "^0.46.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
+  },
+  "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
+    "start": "react-scripts start",
+    "build": "react-scripts build && cp package.json build/package.json",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
