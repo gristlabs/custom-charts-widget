@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/custom-charts-widget/static/css/main.9474a52b.css",
-    "main.js": "/custom-charts-widget/static/js/main.581fe891.js",
-    "index.html": "/custom-charts-widget/index.html",
-    "main.9474a52b.css.map": "/custom-charts-widget/static/css/main.9474a52b.css.map",
-    "main.581fe891.js.map": "/custom-charts-widget/static/js/main.581fe891.js.map"
+    "main.css": "/grist-widget/chart/static/css/main.9474a52b.css",
+    "main.js": "/grist-widget/chart/static/js/main.cc48c40f.js",
+    "index.html": "/grist-widget/chart/index.html",
+    "main.9474a52b.css.map": "/grist-widget/chart/static/css/main.9474a52b.css.map",
+    "main.cc48c40f.js.map": "/grist-widget/chart/static/js/main.cc48c40f.js.map"
   },
   "entrypoints": [
     "static/css/main.9474a52b.css",
-    "static/js/main.581fe891.js"
+    "static/js/main.cc48c40f.js"
   ]
 }
