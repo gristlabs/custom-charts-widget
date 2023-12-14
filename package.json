@@ -3,7 +3,7 @@
   "description": "Widget for more customizable charts with plotly",
   "version": "0.1.0",
   "private": false,
-  "homepage": "https://gristlabs.github.io/custom-charts-widget/",
+  "homepage": "./",
   "grist": [
     {
       "name": "Advanced Charts",
