@@ -7,7 +7,7 @@
   "grist": [
     {
       "name": "Advanced Charts",
-      "url": "https://gristlabs.github.io/grist-widget/chart",
+      "url": "https://gristlabs.github.io/grist-widget/chart/",
       "widgetId": "@gristlabs/widget-chart",
       "published": true,
       "accessLevel": "full"
