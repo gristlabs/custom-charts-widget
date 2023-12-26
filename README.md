@@ -9,7 +9,16 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 - Run `npm install` to get started.
 - Run `npm start` to start the development server, and open [http://localhost:3000](http://localhost:3000) to view it in
   the browser.
-- Run `npm run deploy` to deploy to GitHub Pages. This will build a production bundle and push it to the `gh-pages` branch, and it will be served at https://gristlabs.github.io/custom-charts-widget/.
+- Run `npm run deploy` to deploy to GitHub Pages. This will build a production bundle and push it to the `gh-pages` branch, and it will be served at https://gristlabs.github.io/custom-charts-widget/. This won't affect Grist users, see below for more details.
+
+## Deployment as submodule in grist-widget
+
+In the [grist-widget](https://github.com/gristlabs/grist-widget) repo, the `chart` folder is a git submodule pointing at a commit in the `gh-pages` branch of this repo. To fully deploy changes here to production for use in Grist, you need to:
+
+1. Commit and push changes to this repo. It doesn't have to be in the main branch, but an actual commit is important for reference.
+2. Run `npm run deploy` to build and push to the `gh-pages` branch. The commit message will contain the commit hash of the commit in step 1. You can use https://gristlabs.github.io/custom-charts-widget/ to test the changes in a Grist doc.
+3. In the `grist-widget` repo, run `git submodule update --remote --init` to update the submodule to the latest commit in the `gh-pages` branch. Commit this update, push, and make a PR. The deploy preview URL can be used to test the changes.
+4. Merge the `grist-widget` PR. This will trigger a deploy to production.
 
 ## Code overview
 
