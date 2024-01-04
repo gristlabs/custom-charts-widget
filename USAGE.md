@@ -1,21 +1,5 @@
-The Advanced Chart custom widget gives you more power and flexibility than Grist’s built-in charts, offering a wide variety of chart types as well as increased control over styling and layout. It’s a version of Plotly’s [Chart Studio](https://chart-studio.plotly.com/), see their [tutorials](https://plotly.com/chart-studio-help/tutorials/) for more detailed help.
-
-In the custom widget configuration, choose “Custom URL” and paste the following URL:
+In the custom widget configuration, choose "Advanced Charts". If that's not available, choose “Custom URL” and paste the following URL:
 
 https://gristlabs.github.io/grist-widget/chart/
 
-You’ll need to set the access level to “Full document access”. Don’t worry, the widget only reads data from the selected table, doesn’t send it to any servers, and doesn’t write or otherwise make changes back to your document.
-
-This is what you should see:
-
-![Trace your data](./images/blank_traces_panel.png)
-
-Click the big blue “+ Trace” button to get started. This will add a panel like the following:
-
-![trace 0, Type: Scatter](./images/blank_trace.png)
-
-Click “Scatter” to choose a different chart type such as Bar or Line. Then click the “Choose data” dropdowns to select the columns you want to plot.
-
-You can add multiple traces to overlay different plots. Try different panels from the sidebar to customize the chart further. For example, go to Style > Axes > Titles to add a label to each axis. See the [chart studio tutorials](https://plotly.com/chart-studio-help/tutorials/) to learn more.
-
-As you customize the widget, remember to regularly click the ‘Save’ button above the widget to keep your configuration.
+See the [documentation](https://support.getgrist.com/widget-custom/#advanced-charts) for information on using the widget and what it can do. The source code for that page is [here](https://github.com/gristlabs/grist-help/blob/master/help/widget-custom.md).
