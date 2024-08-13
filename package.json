@@ -14,7 +14,8 @@
       "description": "Go beyond Grist charts, with support for additional chart types and layout/styling options. Powered by Plotly Studio.",
       "authors": [
         {
-          "name": "Grist Labs"
+          "name": "Grist Labs",
+          "url": "https://github.com/gristlabs"
         }
       ],
       "isGristLabsMaintained": true
