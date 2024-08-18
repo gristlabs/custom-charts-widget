@@ -10,7 +10,15 @@
       "url": "https://gristlabs.github.io/grist-widget/chart/index.html",
       "widgetId": "@gristlabs/widget-chart",
       "published": true,
-      "accessLevel": "full"
+      "accessLevel": "full",
+      "description": "Go beyond Grist charts, with support for additional chart types and layout/styling options. Powered by Plotly Studio.",
+      "authors": [
+        {
+          "name": "Grist Labs",
+          "url": "https://github.com/gristlabs"
+        }
+      ],
+      "isGristLabsMaintained": true
     }
   ],
   "dependencies": {
