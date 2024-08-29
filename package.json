@@ -6,7 +6,7 @@
   "homepage": "./",
   "grist": [
     {
-      "name": "Advanced Charts",
+      "name": "Advanced charts",
       "url": "https://gristlabs.github.io/grist-widget/chart/index.html",
       "widgetId": "@gristlabs/widget-chart",
       "published": true,
