@@ -274,7 +274,7 @@ class App extends Component {
             },
             {
               name: "Download plot as an svg",
-              icon: plotly.Icons.camera,
+              icon: plotly.Icons.disk,
               click: function (graphDiv) {
                 plotly.downloadImage(graphDiv, {
                   format: "svg",
