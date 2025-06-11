@@ -258,7 +258,20 @@ class App extends Component {
         hideControls={this.state.hideControls}
         data={this.state.data}
         layout={this.state.layout}
-        config={{ displayModeBar: false }}
+        config={{
+          displayModeBar: true,
+          displaylogo: false,
+          modeBarButtonsToRemove: [
+            "zoom2d",
+            "zoomIn2d",
+            "zoomOut2d",
+            "pan2d",
+            "select2d",
+            "lasso2d",
+            "autoScale2d",
+            "resetScale2d",
+          ],
+        }}
         frames={this.state.frames}
         dataSources={this.state.dataSources}
         dataSourceOptions={this.state.dataSourceOptions}
