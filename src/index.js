@@ -259,7 +259,7 @@ class App extends Component {
         data={this.state.data}
         layout={this.state.layout}
         config={{
-          displayModeBar: true,
+          displayModeBar: "hover",
           displaylogo: false,
           modeBarButtonsToAdd: [
             {
