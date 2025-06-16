@@ -64,8 +64,8 @@ where `grist-plugin-api.js` is loaded.
   },
   dataSourceOptions: [
     {value: 'gristsrc:11', label: 'Column A'},
-    {value: 'gristsrc:12', label: 'Column B''},
-    {value: 'gristsrc:13', label: 'Column C''},
+    {value: 'gristsrc:12', label: 'Column B'},
+    {value: 'gristsrc:13', label: 'Column C'},
     ...
   ],
 }

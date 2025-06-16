@@ -258,7 +258,33 @@ class App extends Component {
         hideControls={this.state.hideControls}
         data={this.state.data}
         layout={this.state.layout}
-        config={{ displayModeBar: false }}
+        config={{
+          displayModeBar: "hover",
+          displaylogo: false,
+          modeBarButtonsToAdd: [
+            {
+              name: "Download plot as a png",
+              icon: plotly.Icons.camera,
+              click: function (graphDiv) {
+                plotly.downloadImage(graphDiv, {
+                  format: "png",
+                  filename: "newplot",
+                });
+              },
+            },
+            {
+              name: "Download plot as an svg",
+              icon: plotly.Icons.disk,
+              click: function (graphDiv) {
+                plotly.downloadImage(graphDiv, {
+                  format: "svg",
+                  filename: "newplot",
+                });
+              },
+            },
+          ],
+          modeBarButtonsToRemove: ["toImage"],
+        }}
         frames={this.state.frames}
         dataSources={this.state.dataSources}
         dataSourceOptions={this.state.dataSourceOptions}
