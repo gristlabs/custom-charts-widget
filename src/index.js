@@ -7,6 +7,7 @@ import 'react-chart-editor/lib/react-chart-editor.min.css'
 import {CogIcon} from 'plotly-icons';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import moment from 'moment-timezone';
 
 /**
  * Strings of the form `gristsrc:${colRef}` represent Grist table columns.
@@ -30,6 +31,26 @@ function isGristSrc(src) {
 }
 
 /**
+ * Extract timezone information from a Grist column type string.
+ * DateTime columns have types like "DateTime:America/New_York"
+ * Returns the timezone string if present, or null otherwise.
+ */
+function extractTimezoneFromColType(colType) {
+  if (!colType || typeof colType !== 'string') {
+    return null;
+  }
+  const colonIndex = colType.indexOf(':');
+  if (colonIndex === -1) {
+    return null;
+  }
+  const baseType = colType.substring(0, colonIndex);
+  if (baseType !== 'DateTime') {
+    return null;
+  }
+  return colType.substring(colonIndex + 1);
+}
+
+/**
  * Recursively walk through `dataTarget` looking for `gristsrc:` strings.
  * For each one, look up the string in `dataSources` to get the array of column values.
  * Push an object to `columns` containing the array of `values`, a function `setterInDataTarget`
@@ -41,7 +62,7 @@ function isGristSrc(src) {
  * i.e. an element of the plotly `data` array.
  * Then it may be recursively called with values within `dataTarget`.
  */
-function fillInData(dataTarget, dataSources, columns) {
+function fillInData(dataTarget, dataSources, columns, columnMetadata = {}) {
   for (const srcKey in dataTarget) {
     const val = dataTarget[srcKey];
     if (srcKey === "0" && typeof val !== "object") {
@@ -76,18 +97,32 @@ function fillInData(dataTarget, dataSources, columns) {
         }
 
         values = values[0];
-        columns.push({ values, setterInDataTarget });
+        const source = newSources[0];
+        const colType = columnMetadata[source]?.type;
+        columns.push({ 
+          values, 
+          setterInDataTarget,
+          source,
+          timezone: extractTimezoneFromColType(colType)
+        });
       } else {
         values.forEach((column, i) => {
           function setterInDataTarget(v) {
             dataTarget[valuesKey][i] = v;
           }
 
-          columns.push({ values: column, setterInDataTarget });
+          const source = newSources[i];
+          const colType = columnMetadata[source]?.type;
+          columns.push({ 
+            values: column, 
+            setterInDataTarget,
+            source,
+            timezone: extractTimezoneFromColType(colType)
+          });
         });
       }
     } else if (typeof val === "object") {
-      fillInData(dataTarget[srcKey], dataSources, columns);
+      fillInData(dataTarget[srcKey], dataSources, columns, columnMetadata);
     }
   }
 }
@@ -97,7 +132,7 @@ function fillInData(dataTarget, dataSources, columns) {
  * using values derived from `dataSources`.
  * See the README and `fillInData` for details.
  */
-function produceFilledInData(data, dataSources) {
+function produceFilledInData(data, dataSources, columnMetadata = {}) {
   if (!data) {
     return [];
   }
@@ -109,13 +144,14 @@ function produceFilledInData(data, dataSources) {
   return produce(data, draft => {
     for (const trace of draft) {
       const columns = [];
-      fillInData(trace, dataSources, columns);
+      fillInData(trace, dataSources, columns, columnMetadata);
 
       // This is where other kinds of data transformations could be added.
       // (see https://github.com/gristlabs/custom-charts-widget/issues/2)
       // These transformations should leave an appropriate `values` array in each column.
       // They can either modify the `values` array in place, or replace it with a new array.
       flattenLists(columns);
+      convertTimezones(columns);
 
       for (const { values, setterInDataTarget } of columns) {
         setterInDataTarget(values);
@@ -151,6 +187,52 @@ function flattenLists(columns) {
     for (const col of columns) {
       col.values = col.newValues;
     }
+  }
+}
+
+/**
+ * Convert DateTime values to the appropriate timezone for display.
+ * For DateTime columns with timezone information, convert Unix timestamps
+ * to the local timezone offset so that Plotly displays them correctly.
+ */
+function convertTimezones(columns) {
+  for (const col of columns) {
+    if (!col.timezone || !col.values) {
+      continue;
+    }
+    
+    // Convert each value if it's a DateTime
+    const convertedValues = col.values.map(value => {
+      if (value === null || value === undefined || value === '[Blank]') {
+        return value;
+      }
+      
+      // Check if the value looks like a timestamp (number or numeric string)
+      const numValue = typeof value === 'number' ? value : parseFloat(value);
+      if (isNaN(numValue)) {
+        return value;
+      }
+      
+      // Check if it's in milliseconds (JS timestamps) or seconds (Unix timestamps)
+      const isSeconds = numValue < 1e11;
+      const timestamp = isSeconds ? numValue * 1000 : numValue;
+      
+      try {
+        // Create a moment in UTC and then convert to the target timezone
+        // Then get the milliseconds, which represents the local time
+        const utcMoment = moment.utc(timestamp);
+        const tzMoment = utcMoment.tz(col.timezone);
+        
+        // Return the timestamp that, when interpreted as UTC by Plotly, 
+        const offsetMs = tzMoment.utcOffset() * 60 * 1000;
+        return timestamp + offsetMs;
+      } catch (e) {
+        console.warn(`Failed to convert timezone for value ${value} with timezone ${col.timezone}:`, e);
+        return value;
+      }
+    });
+    
+    col.values = convertedValues;
   }
 }
 
@@ -201,6 +283,12 @@ class App extends Component {
     const onGristUpdate = async (tableData) => {
       const columns = await getColumns();
       const colIdToSrc = Object.fromEntries(columns.map(col => [col.colId, colRefToSrc(col.id)]));
+      
+      // Create columnMetadata mapping from src to column type
+      const columnMetadata = Object.fromEntries(
+        columns.map(col => [colRefToSrc(col.id), { type: col.type }])
+      );
+      
       const dataSources = Object.fromEntries(Object.entries(tableData).map(
         ([colId, values]) => [colIdToSrc[colId], values.map(v => v === '' || v == null ? '[Blank]' : v)]
       ));
@@ -210,7 +298,7 @@ class App extends Component {
       })).filter(col => col.value in dataSources);
 
       const state = await grist.getOption('state');
-      const data = produceFilledInData(state?.data, dataSources);
+      const data = produceFilledInData(state?.data, dataSources, columnMetadata);
       this.setState({ ...state, data, dataSources, dataSourceOptions });
       if (!data.length) {
         this.setState({ hideControls: false });
